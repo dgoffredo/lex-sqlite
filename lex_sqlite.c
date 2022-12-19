@@ -150,7 +150,10 @@ struct state {
 
 static void update_output(void *cookie, lex_sqlite_token_kind_t kind,
                           const char *token_begin, size_t token_length,
-                          const char *, size_t) {
+                          const char *inside_begin, size_t inside_length) {
+  (void)inside_begin;  // unused
+  (void)inside_length; // unused
+
   struct state *state = (struct state *)cookie;
 
   switch (kind) {
