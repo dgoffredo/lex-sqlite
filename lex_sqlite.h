@@ -18,3 +18,5 @@ extern "C"
                                 const char *token_begin, size_t token_length,
                                 const char *inside_begin, size_t inside_length),
                void *cookie);
+
+char *lex_sqlite_normalize(const char *sql, size_t length, char *output);

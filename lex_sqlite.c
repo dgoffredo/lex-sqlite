@@ -1,6 +1,7 @@
 #include "lex_sqlite.h"
 
 #include <stdbool.h> // bool, true, false
+#include <string.h>  // memcpy
 
 static bool not_whitespace(char ch) {
   switch (ch) {
@@ -71,8 +72,9 @@ void lex_sqlite(const char *sql, size_t length,
       }
       // emit block comment token
       const char *const start_comment = current;
+      current += 2;
       for (;;) {
-        current = find(current + 2, end, '*');
+        current = find(current, end, '*');
         if (current == end || current + 1 == end) {
           on_token(cookie, LEX_SQLITE_TOKEN_KIND_COMMENT, start_comment,
                    end - start_comment, start_comment + 2,
@@ -139,4 +141,40 @@ void lex_sqlite(const char *sql, size_t length,
     on_token(cookie, LEX_SQLITE_TOKEN_KIND_OTHER, token, end - token, token,
              end - token);
   }
+}
+
+struct state {
+  char *next;
+  bool previous_write_was_whitespace;
+};
+
+static void update_output(void *cookie, lex_sqlite_token_kind_t kind,
+                          const char *token_begin, size_t token_length,
+                          const char *, size_t) {
+  struct state *state = (struct state *)cookie;
+
+  switch (kind) {
+  case LEX_SQLITE_TOKEN_KIND_COMMENT:
+    return;
+  case LEX_SQLITE_TOKEN_KIND_WHITESPACE:
+    if (state->previous_write_was_whitespace) {
+      return;
+    }
+    *state->next = ' ';
+    ++state->next;
+    state->previous_write_was_whitespace = true;
+    return;
+  default:
+    break;
+  }
+
+  memcpy(state->next, token_begin, token_length);
+  state->next += token_length;
+  state->previous_write_was_whitespace = false;
+}
+
+char *lex_sqlite_normalize(const char *sql, size_t length, char *output) {
+  struct state state = {output, false};
+  lex_sqlite(sql, length, &update_output, &state);
+  return state.next;
 }

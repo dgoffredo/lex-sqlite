@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <string_view>
+#include <vector>
 
 namespace {
 
@@ -54,4 +55,9 @@ int main() {
       break;
     }
   });
+
+  std::vector<char> buffer(sql.size());
+  auto end = lex_sqlite_normalize(sql.data(), sql.size(), buffer.data());
+  std::cout << "\nnormalized: ";
+  std::cout.write(buffer.data(), end - buffer.data()) << '\n';
 }
