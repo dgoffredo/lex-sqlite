@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stddef.h>
+#include <stddef.h> // size_t
 
 typedef enum {
   LEX_SQLITE_TOKEN_KIND_WHITESPACE,
@@ -18,15 +18,3 @@ extern "C"
                                 const char *token_begin, size_t token_length,
                                 const char *inside_begin, size_t inside_length),
                void *cookie);
-
-#ifdef __cplusplus
-#include <cstddef>
-#include <functional>
-#include <string_view>
-
-void lex_sqlite(std::string_view sql,
-                const std::function<void(lex_sqlite_token_kind_t kind,
-                                         std::string_view token,
-                                         std::string_view inside)> &on_token);
-
-#endif
